@@ -55,7 +55,7 @@ public class MyGdxGame implements ApplicationListener {
 
         sb = new SpriteBatch();
         cam = new BoundedCamera();
-        cam.setToOrtho(false, (float) (V_WIDTH), (float) (V_HEIGHT));
+        cam.setToOrtho(false, (float) (V_WIDTH/1.77), (float) (V_HEIGHT/1.6));
         gsm = new GameStateManager(this);
         stepDatabase = new StepDatabase();
         exampleDatabase = new ExampleDatabase();

@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -23,6 +25,7 @@ import com.mygdx.game.Dialog.Dialog;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.UI.Controller;
 import com.mygdx.game.UI.DialogBox;
+import com.mygdx.game.UI.JoyStick;
 import com.mygdx.game.UI.OptionBox;
 import com.mygdx.game.data.DataStorage;
 import com.mygdx.game.data.SaveLoad;
@@ -69,6 +72,9 @@ public class Play extends GameState {
     public BodyDef bdef;
     private Controller controller;
     private boolean isStopped;
+    private JoyStick joyStick;
+    private ShapeRenderer shapeRenderer;
+    private Vector3 mouse;
 
     public Play(GameStateManager gsm) {
         super(gsm);
@@ -82,7 +88,9 @@ public class Play extends GameState {
         saveLoad = new SaveLoad(this);
         savePlay = game.save;
         skin_this = game.getSkin();
-
+        joyStick = new JoyStick(100, 100, 200);
+        shapeRenderer = new ShapeRenderer();
+        shapeRenderer.setProjectionMatrix(cam.combined);
         //initUI();
         initController();
         createPlayer();
@@ -96,6 +104,8 @@ public class Play extends GameState {
         b2dCam = new BoundedCamera(); //рисует дебаг коллизию?
         b2dCam.setToOrtho(false, V_WIDTH / PPM, V_HEIGHT / PPM); // /2?
         b2dCam.setBounds(0, (tileMapWidth * tileSize) / PPM, 0, (tileMapHeight * tileSize) / PPM);
+
+        mouse = new Vector3();
         System.out.println("V_HEIGHT: " + MyGdxGame.V_HEIGHT + " player: " + player.getPosition().x + " " + player.getPosition().y);
     }
 
@@ -141,6 +151,13 @@ public class Play extends GameState {
                 canDraw = false;
             }
         }
+        if (Gdx.input.isTouched()) {
+            cam.unproject(mouse.set(Gdx.input.getX(), Gdx.input.getY(), 0));
+            joyStick.update(mouse.x, mouse.y);
+        }else {
+            joyStick.setDefaultPos();
+        }
+
         //dcontroller.update(dt);
     }
 
@@ -174,6 +191,7 @@ public class Play extends GameState {
         }
 
         controllerStage.draw();
+        joyStick.render(shapeRenderer);
     }
 
     private void createPlayer() {
@@ -405,7 +423,9 @@ public class Play extends GameState {
     }
 
     @Override
-    public void dispose() {}
+    public void dispose() {
+        shapeRenderer.dispose();
+    }
 
     public Player2 getPlayer() {
         return player;
@@ -413,5 +433,9 @@ public class Play extends GameState {
 
     public Controller getController() {
         return controller;
+    }
+
+    public JoyStick getJoyStick() {
+        return joyStick;
     }
 }
